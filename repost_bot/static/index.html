@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Repost Bot</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%232f6fed' d='M2 11l19-8-4 18-6-5-3 4v-6l9-8-11 7z'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div id="auth" class="auth hidden">
+    <form id="auth-form" class="card auth-card" autocomplete="on">
+      <h1>Repost Bot</h1>
+      <p id="auth-hint" class="muted">Padrão: usuário <b>admin</b> e senha <b>admin</b>.</p>
+      <label>Usuário
+        <input id="auth-user" autocomplete="username" required value="admin">
+      </label>
+      <label>Senha
+        <input id="auth-pass" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="btn primary" type="submit" id="auth-submit">Entrar</button>
+      <p id="auth-error" class="error-text"></p>
+    </form>
+  </div>
+
+  <div id="app" class="hidden">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <div>
+          <div class="title">Repost Bot</div>
+          <div class="sub" id="bot-name">—</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span id="state-pill" class="pill">—</span>
+        <button class="btn" id="btn-pause">Pausar</button>
+        <button class="btn ghost" id="btn-logout" title="Sair">Sair</button>
+      </div>
+    </header>
+
+    <main>
+      <div id="alerts"></div>
+
+      <section class="flow card" id="flow">
+        <div class="flow-side">
+          <div class="flow-label">Origem</div>
+          <div class="flow-chat" id="flow-src">não definida</div>
+        </div>
+        <div class="flow-arrow" aria-hidden="true">→</div>
+        <div class="flow-side">
+          <div class="flow-label">Destino</div>
+          <div class="flow-chat" id="flow-dst">não definido</div>
+        </div>
+      </section>
+
+      <section class="stats" id="stats"></section>
+
+      <section class="card" id="step-token">
+        <div class="card-head">
+          <h2><span class="step">1</span> Token do bot</h2>
+          <span class="muted" id="token-current"></span>
+        </div>
+        <p class="muted">Crie um bot dedicado no <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> e cole o token aqui. Ele fica salvo só no banco local e nunca é exibido de novo.</p>
+        <form id="token-form" class="row">
+          <input id="token-input" type="password" placeholder="123456789:AA..." autocomplete="off" spellcheck="false">
+          <button class="btn primary" type="submit">Salvar e testar</button>
+        </form>
+      </section>
+
+      <section class="card" id="step-chats">
+        <div class="card-head">
+          <h2><span class="step">2</span> Grupos e canais</h2>
+          <button class="btn" id="btn-refresh">Atualizar lista</button>
+        </div>
+        <p class="muted">A lista é preenchida automaticamente quando o bot é adicionado ou promovido, quando alguém posta no chat, ou quando você encaminha uma mensagem do canal para o bot no privado. Depois é só clicar em <b>Origem</b> e <b>Destino</b>.</p>
+        <div class="row wrap" id="add-links"></div>
+        <form id="add-form" class="row">
+          <input id="add-input" placeholder="@canal_publico, t.me/canal ou ID" autocomplete="off" spellcheck="false">
+          <button class="btn" type="submit">Adicionar</button>
+        </form>
+        <div id="chats" class="chats"></div>
+      </section>
+
+      <section class="card" id="step-admin">
+        <div class="card-head">
+          <h2><span class="step">3</span> Administrador no Telegram <span class="muted small">(opcional)</span></h2>
+          <span class="muted" id="admin-current"></span>
+        </div>
+        <p class="muted">Para receber avisos e usar comandos como /status no Telegram, mande <b>/start</b> para o bot e clique em <b>Sou eu</b>.</p>
+        <div class="row wrap" id="admin-links"></div>
+        <div id="users" class="users"></div>
+      </section>
+
+      <section class="card" id="step-account">
+        <div class="card-head">
+          <h2><span class="step">4</span> Sua conta do Telegram <span class="muted small">(para o histórico com tópicos)</span></h2>
+          <span class="muted" id="account-current"></span>
+        </div>
+        <p class="muted">A conta é usada <b>só para ler</b> o histórico e os tópicos. Quem copia é o bot. Pegue o <b>api_id</b> e o <b>api_hash</b> em <a href="https://my.telegram.org/apps" target="_blank" rel="noopener">my.telegram.org/apps</a>.</p>
+        <form id="acc-form" class="row wrap">
+          <input id="acc-api-id" inputmode="numeric" placeholder="api_id" autocomplete="off">
+          <input id="acc-api-hash" type="password" placeholder="api_hash" autocomplete="off" spellcheck="false">
+          <input id="acc-phone" type="tel" placeholder="+5511999999999" autocomplete="tel">
+          <button class="btn primary" type="submit">Enviar código</button>
+        </form>
+        <form id="acc-code-form" class="row hidden">
+          <input id="acc-code" inputmode="numeric" placeholder="Código recebido no Telegram" autocomplete="one-time-code">
+          <button class="btn primary" type="submit">Entrar</button>
+        </form>
+        <form id="acc-pass-form" class="row hidden">
+          <input id="acc-pass" type="password" placeholder="Senha de verificação em duas etapas" autocomplete="current-password">
+          <button class="btn primary" type="submit">Entrar</button>
+        </form>
+        <div class="row hidden" id="acc-connected">
+          <button class="btn danger" id="btn-acc-logout">Desconectar conta</button>
+        </div>
+      </section>
+
+      <section class="card hidden" id="topics-card">
+        <div class="card-head">
+          <h2>Tópicos</h2>
+          <button class="btn" id="btn-topics-fetch">Ler tópicos</button>
+        </div>
+        <p class="muted">Escolha para onde vai cada tópico da origem. <b>Criar automaticamente</b> cria no destino um tópico com o mesmo nome na primeira mensagem.</p>
+        <label class="small muted row"><input type="checkbox" id="auto-topics"> Criar automaticamente tópicos não mapeados</label>
+        <div id="topics" class="topics"></div>
+      </section>
+
+      <section class="card" id="import-card">
+        <div class="card-head"><h2>Importar histórico com tópicos</h2></div>
+        <p class="muted">Sua conta lê todas as mensagens antigas da origem (com o tópico de cada uma) e o bot copia na ordem, respeitando o limite de envio.</p>
+        <div id="import-status" class="muted"></div>
+        <div class="row">
+          <button class="btn primary" id="btn-import">Importar histórico</button>
+          <button class="btn hidden" id="btn-import-stop">Parar leitura</button>
+        </div>
+      </section>
+
+      <section class="card" id="queue-card">
+        <div class="card-head">
+          <h2>Fila de problemas</h2>
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-status="failed">Falhas</button>
+            <button class="tab" data-status="uncertain">Incertas</button>
+            <button class="tab" data-status="pending">Pendentes</button>
+          </div>
+        </div>
+        <p class="muted small" id="queue-hint"></p>
+        <div id="queue"></div>
+        <div class="row" id="queue-actions"></div>
+      </section>
+
+      <section class="card" id="backfill-card">
+        <div class="card-head"><h2>Recuperar histórico (backfill)</h2></div>
+        <p class="muted">Copia um intervalo de IDs antigos da origem (só canal/supergrupo). IDs apagados são pulados. Teste antes com um intervalo pequeno.</p>
+        <form id="backfill-form" class="row">
+          <input id="bf-first" type="number" min="1" placeholder="ID inicial">
+          <input id="bf-last" type="number" min="1" placeholder="ID final">
+          <button class="btn" type="submit">Enfileirar</button>
+        </form>
+      </section>
+
+      <details class="card" id="advanced">
+        <summary><h2>Configurações avançadas</h2></summary>
+        <form id="settings-form" class="grid"></form>
+        <div class="row">
+          <button class="btn primary" id="btn-save-settings">Salvar e aplicar</button>
+          <button class="btn" id="btn-restart">Reconectar bot</button>
+        </div>
+      </details>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>Log</h2>
+          <label class="small muted"><input type="checkbox" id="log-follow" checked> acompanhar</label>
+        </div>
+        <pre id="log" class="log"></pre>
+      </section>
+
+      <details class="card" id="account">
+        <summary><h2>Conta</h2></summary>
+        <form id="pw-form" class="row wrap">
+          <input id="pw-user" placeholder="Usuário (opcional)" autocomplete="username">
+          <input id="pw-current" type="password" placeholder="Senha atual" autocomplete="current-password">
+          <input id="pw-new" type="password" placeholder="Nova senha (mín. 4)" autocomplete="new-password" minlength="4">
+          <button class="btn" type="submit">Trocar senha</button>
+        </form>
+      </details>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

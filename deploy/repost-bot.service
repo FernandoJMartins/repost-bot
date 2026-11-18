@@ -1,0 +1,26 @@
+[Unit]
+Description=Telegram repost/backup bot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=repostbot
+Group=repostbot
+WorkingDirectory=/opt/repost-bot
+EnvironmentFile=-/opt/repost-bot/.env
+ExecStart=/opt/repost-bot/.venv/bin/python -m repost_bot
+Restart=always
+RestartSec=10
+TimeoutStopSec=75
+KillSignal=SIGTERM
+
+# Endurecimento básico
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/repost-bot/data /opt/repost-bot/logs
+
+[Install]
+WantedBy=multi-user.target

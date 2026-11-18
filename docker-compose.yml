@@ -1,0 +1,27 @@
+services:
+  repost-bot:
+    build: .
+    container_name: repost-bot
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DB_PATH: /app/data/repost.db
+      LOG_FILE: /app/logs/repost-bot.log
+      # Dentro do container escuta em todas as interfaces; a porta abaixo só é
+      # publicada em 127.0.0.1 do host (não fica acessível pela rede).
+      WEB_HOST: 0.0.0.0
+      WEB_PORT: "8080"
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    # Tempo para concluir a cópia em andamento ao parar o container.
+    stop_grace_period: 75s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
